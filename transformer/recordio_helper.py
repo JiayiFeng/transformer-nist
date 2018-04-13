@@ -32,7 +32,7 @@ class FieldHelper(object):
                 dtypes=self.dtypes,
                 shapes=shapes,
                 lod_levels=[0] * len(shapes))
-
+            file_obj = fluid.layers.io.double_buffer(file_obj)
         vars = fluid.layers.read_file(file_obj)
 
         result = dict()
