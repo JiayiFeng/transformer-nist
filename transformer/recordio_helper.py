@@ -19,19 +19,26 @@ class FieldHelper(object):
         for field in self.fields:
             shapes.append(data_shapes[field])
         if use_open_files:
+            print("OPEN FILE")
             file_obj = fluid.layers.open_files(
-                filenames=[self.filenames[0]],
+                filenames=self.filenames,
                 dtypes=self.dtypes,
                 shapes=shapes,
-                thread_num=1,
-                lod_levels=[0] * len(shapes))
-
+                thread_num=4,
+                for_parallel=True,
+                pass_num=10,
+                lod_levels=[0] * len(shapes),
+                buffer_size=10)
+            # file_obj = fluid.layers.io.shuffle(file_obj, buffer_size=10)
+            file_obj = fluid.layers.io.double_buffer(file_obj)
         else:
+            print("FUCK")
             file_obj = fluid.layers.open_recordio_file(
                 filename=self.filenames[0],
                 dtypes=self.dtypes,
                 shapes=shapes,
                 lod_levels=[0] * len(shapes))
+            file_obj = fluid.layers.io.double_buffer(file_obj)
 
         vars = fluid.layers.read_file(file_obj)
 

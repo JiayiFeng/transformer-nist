@@ -4,12 +4,13 @@ from config import ModelHyperParams, TrainTaskConfig
 from model import transformer_pe
 import sys
 import numpy
+import time
 
 
 def main():
     startup = fluid.Program()
     main = fluid.Program()
-    multi_files = False
+    multi_files = True
     field_helper = create_or_get_data(single_file=not multi_files)
     with fluid.program_guard(main, startup):
         fileds = field_helper.create_reader(use_open_files=multi_files)
@@ -36,14 +37,17 @@ def main():
         exe.run(startup)
 
         exe = fluid.ParallelExecutor(loss_name=sum_cost.name, use_cuda=True)
-
-        for i in xrange(sys.maxint):
+        
+        begin_time = time.time()
+        for i in xrange(1000):
             if i % 10 == 0:
                 cost_np = map(numpy.array,
                               exe.run(fetch_list=[sum_cost.name]))[0]
                 print 'Batch {0}, Cost {1}'.format(i, cost_np[0])
             else:
                 exe.run(fetch_list=[])
+        end_time = time.time()
+        print 'Time={0}'.format(end_time - begin_time)
 
 
 if __name__ == '__main__':
